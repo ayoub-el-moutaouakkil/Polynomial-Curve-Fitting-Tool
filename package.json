@@ -1,0 +1,17 @@
+{
+  "name": "polynomial-curve-fitting-tool",
+  "version": "1.0.0",
+  "description": "Polynomial curve fitting web app — least-squares regression from CSV data",
+  "scripts": {
+    "dev": "vite",
+    "build": "npm install && tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "clean": "rm -rf dist node_modules package-lock.json"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vite": "^8.0.2",
+    "vitest": "^4.1.1"
+  }
+}

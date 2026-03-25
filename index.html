@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Polynomial Curve Fitting</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400;0,700;1,400&family=Source+Code+Pro:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Polynomial Curve Fitting</h1>
+      <p>Least-squares regression from tabular data to polynomial equation</p>
+    </header>
+
+    <main>
+      <!-- File upload -->
+      <div class="card">
+        <h2>1. Upload CSV file</h2>
+        <div id="drop-zone">
+          <div class="icon">📂</div>
+          <p><span>Click to browse</span> or drag &amp; drop a .csv file</p>
+        </div>
+        <input type="file" id="file-input" accept=".csv,text/csv" hidden />
+        <p class="hint">
+          Expected format: two columns per row — <code>x</code> and <code>y</code>.<br />
+          A header row is optional and will be skipped automatically.<br />
+          Delimiter: comma <code>,</code> or semicolon <code>;</code>.
+        </p>
+      </div>
+
+      <!-- Degree selector -->
+      <div class="card">
+        <h2>2. Choose polynomial degree</h2>
+        <div class="slider-row">
+          <label for="degree">Degree</label>
+          <input type="range" id="degree" min="1" max="10" value="2" />
+          <span id="degree-value">2</span>
+        </div>
+      </div>
+
+      <!-- Error -->
+      <p id="error" class="hidden"></p>
+
+      <!-- Result -->
+      <div id="result" class="card hidden">
+        <h2>3. Result</h2>
+        <div class="equation-box">
+          <p id="equation"></p>
+        </div>
+        <p id="r2"></p>
+        <table id="coeff-table">
+          <thead>
+            <tr>
+              <th>Coeff.</th>
+              <th>Term</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

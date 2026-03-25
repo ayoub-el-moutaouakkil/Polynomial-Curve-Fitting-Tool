@@ -1,0 +1,220 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --border: #d0d4db;
+  --accent: #1a4f8a;
+  --accent-light: #2563a8;
+  --text: #1a1e2a;
+  --muted: #5a6070;
+  --success: #1a6b3a;
+  --error: #b91c1c;
+  --radius: 6px;
+  --font: 'Source Serif 4', 'Georgia', serif;
+  --mono: 'Source Code Pro', 'Courier New', monospace;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3rem 1rem 4rem;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 1.25rem;
+  width: 100%;
+  max-width: 680px;
+}
+
+header h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--accent);
+}
+
+header p {
+  color: var(--muted);
+  margin-top: 0.35rem;
+  font-size: 0.92rem;
+  font-style: italic;
+}
+
+main {
+  width: 100%;
+  max-width: 680px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.card h2 {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-bottom: 1rem;
+  font-family: var(--mono);
+  font-weight: 600;
+}
+
+/* Drop zone */
+#drop-zone {
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  background: var(--bg);
+}
+
+#drop-zone:hover,
+#drop-zone.drag-over {
+  border-color: var(--accent-light);
+  background: #eef3fa;
+}
+
+#drop-zone .icon {
+  font-size: 1.6rem;
+  margin-bottom: 0.5rem;
+  color: var(--muted);
+}
+
+#drop-zone p {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+#drop-zone p span {
+  color: var(--accent-light);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Degree slider */
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.slider-row label {
+  font-size: 0.9rem;
+  color: var(--muted);
+  white-space: nowrap;
+  font-family: var(--mono);
+}
+
+input[type="range"] {
+  flex: 1;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+#degree-value {
+  font-family: var(--mono);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent);
+  min-width: 1.5rem;
+  text-align: center;
+}
+
+/* Result */
+#result.hidden { display: none; }
+
+.equation-box {
+  background: #f0f4fa;
+  border-left: 4px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 1rem 1.25rem;
+  margin-bottom: 0.75rem;
+  font-family: var(--mono);
+  font-size: 1.05rem;
+  color: var(--accent);
+  word-break: break-all;
+}
+
+#r2 {
+  font-size: 0.88rem;
+  color: var(--success);
+  margin-bottom: 1.25rem;
+  font-family: var(--mono);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+thead th {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  color: var(--muted);
+  border-bottom: 2px solid var(--border);
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+tbody tr:nth-child(even) { background: #f9fafb; }
+
+tbody td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono);
+  color: var(--text);
+}
+
+/* Error */
+#error {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  color: var(--error);
+  font-size: 0.88rem;
+  font-family: var(--mono);
+}
+
+#error.hidden { display: none; }
+
+/* CSV hint */
+.hint {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-top: 0.75rem;
+  line-height: 1.7;
+  font-style: italic;
+}
+
+.hint code {
+  background: #eef1f5;
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-style: normal;
+  color: var(--accent);
+  font-size: 0.85em;
+}
