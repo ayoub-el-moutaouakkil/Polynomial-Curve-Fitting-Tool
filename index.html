@@ -6,66 +6,120 @@
     <title>Polynomial Curve Fitting</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
-      href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400;0,700;1,400&family=Source+Code+Pro:wght@400;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Code+Pro:wght@400;600&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
-    <header>
-      <h1>Polynomial Curve Fitting</h1>
-      <p>Least-squares regression from tabular data to polynomial equation</p>
-    </header>
+    <div class="app">
 
-    <main>
-      <!-- File upload -->
-      <div class="card">
-        <h2>1. Upload CSV file</h2>
-        <div id="drop-zone">
-          <div class="icon">📂</div>
-          <p><span>Click to browse</span> or drag &amp; drop a .csv file</p>
+      <!-- ── Sidebar ──────────────────────────────────────────────────────── -->
+      <aside class="sidebar">
+        <div class="sidebar-brand">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          CurveFit
         </div>
-        <input type="file" id="file-input" accept=".csv,text/csv" hidden />
-        <p class="hint">
-          Expected format: two columns per row — <code>x</code> and <code>y</code>.<br />
-          A header row is optional and will be skipped automatically.<br />
-          Delimiter: comma <code>,</code> or semicolon <code>;</code>.
-        </p>
-      </div>
 
-      <!-- Degree selector -->
-      <div class="card">
-        <h2>2. Choose polynomial degree</h2>
-        <div class="slider-row">
-          <label for="degree">Degree</label>
-          <input type="range" id="degree" min="1" max="10" value="2" />
-          <span id="degree-value">2</span>
+        <div class="sidebar-nav">
+          <section class="sidebar-section">
+            <h3 class="sidebar-label">Data Source</h3>
+            <div id="drop-zone">
+              <div class="drop-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+              </div>
+              <p><span>Click to browse</span> or drag &amp; drop</p>
+              <p class="drop-sub">.csv file</p>
+            </div>
+            <input type="file" id="file-input" accept=".csv,text/csv" hidden />
+            <p id="file-name" class="file-name hidden"></p>
+            <p class="hint">Two columns: <code>x</code> and <code>y</code>.<br/>
+              Comma or semicolon delimiter.<br/>
+              Header row auto-detected.</p>
+          </section>
+
+          <section class="sidebar-section">
+            <h3 class="sidebar-label">Polynomial Degree</h3>
+            <div class="degree-display">
+              <span id="degree-value">2</span>
+            </div>
+            <input type="range" id="degree" min="1" max="10" value="2" />
+            <div class="degree-ticks">
+              <span>1</span><span>5</span><span>10</span>
+            </div>
+          </section>
         </div>
-      </div>
 
-      <!-- Error -->
-      <p id="error" class="hidden"></p>
-
-      <!-- Result -->
-      <div id="result" class="card hidden">
-        <h2>3. Result</h2>
-        <div class="equation-box">
-          <p id="equation"></p>
+        <div class="sidebar-footer">
+          Least-squares regression
         </div>
-        <p id="r2"></p>
-        <canvas id="chart"></canvas>
-        <table id="coeff-table">
-          <thead>
-            <tr>
-              <th>Coeff.</th>
-              <th>Term</th>
-              <th>Value</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </main>
+      </aside>
+
+      <!-- ── Workspace ────────────────────────────────────────────────────── -->
+      <main class="workspace">
+
+        <header class="workspace-header">
+          <div>
+            <h1>Polynomial Curve Fitting</h1>
+            <p>Least-squares regression from tabular data</p>
+          </div>
+          <div id="status-badge" class="status-badge status-idle">Awaiting data</div>
+        </header>
+
+        <!-- Chart — always visible -->
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <span class="chart-card-title">Curve Visualization</span>
+            <div class="legend-inline hidden" id="legend">
+              <span class="legend-curve"></span> fitted curve
+              <span class="legend-dot"></span> data points
+            </div>
+          </div>
+          <canvas id="chart"></canvas>
+        </div>
+
+        <!-- Stat cards — always visible, populated after fit -->
+        <div class="stats-row">
+          <div class="stat-card stat-card-wide">
+            <span class="stat-label">Fitted Equation</span>
+            <p id="equation" class="stat-value">—</p>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">R²</span>
+            <p id="r2" class="stat-value">—</p>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Data Points</span>
+            <p id="n-points" class="stat-value">—</p>
+          </div>
+        </div>
+
+        <!-- Error -->
+        <p id="error" class="error-msg hidden"></p>
+
+        <!-- Coefficient table -->
+        <div class="coeff-card hidden" id="coeff-card">
+          <h2 class="card-title">Coefficients</h2>
+          <table id="coeff-table">
+            <thead>
+              <tr>
+                <th>Coeff.</th>
+                <th>Term</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+      </main>
+    </div>
 
     <script type="module" src="/src/main.ts"></script>
   </body>
