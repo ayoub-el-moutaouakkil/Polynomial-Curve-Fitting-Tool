@@ -11,6 +11,52 @@ export interface RegressionResult {
   equation: string;
 }
 
+export interface ParsedSeries {
+  name: string;
+  x: number[];
+  y: number[];
+}
+
+/**
+ * Parse a multi-series CSV where sections are separated by blank lines.
+ * Each section may start with an optional name line (single non-numeric value).
+ * Falls back gracefully to a single series for regular CSVs.
+ */
+export function parseMultiCSV(csv: string): ParsedSeries[] {
+  const sections = csv.split(/\n[ \t]*\n/).map((s) => s.trim()).filter(Boolean);
+  const results: ParsedSeries[] = [];
+
+  for (const section of sections) {
+    const lines = section.split(/\r?\n/).filter((l) => l.trim());
+    if (!lines.length) continue;
+
+    // First line is a name if it has no delimiter and is not numeric
+    let name = `Series ${results.length + 1}`;
+    const first = lines[0].trim();
+    const firstParts = first.split(/[,;]/);
+    const firstIsNumeric =
+      firstParts.length >= 2 &&
+      !isNaN(parseFloat(firstParts[0])) &&
+      !isNaN(parseFloat(firstParts[1]));
+    const firstIsSingleNonNumeric =
+      firstParts.length === 1 && isNaN(parseFloat(first));
+
+    if (firstIsSingleNonNumeric && !firstIsNumeric) {
+      name = first.replace(/^[#\-*\s]+/, "").trim() || name;
+    }
+
+    try {
+      const { x, y } = parseCSV(section); // parseCSV already skips non-numeric rows
+      if (x.length > 0) results.push({ name, x, y });
+    } catch {
+      // skip invalid sections
+    }
+  }
+
+  if (!results.length) throw new Error("No valid data found in the CSV.");
+  return results;
+}
+
 /**
  * Parse a CSV string into arrays of x and y numbers.
  * Supports comma and semicolon delimiters; skips header rows.
