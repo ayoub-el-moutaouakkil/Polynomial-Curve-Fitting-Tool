@@ -192,6 +192,36 @@ function gaussianElimination(A: number[][], b: number[]): number[] {
 }
 
 /**
+ * Find the optimal polynomial degree for the given data using adjusted R².
+ * Tries degrees from 1 to min(maxDeg, n-2) and returns the degree that
+ * maximises adjusted R² (penalises unnecessary complexity).
+ */
+export function findOptimalDegree(x: number[], y: number[], maxDeg: number = 20): number {
+  const n = x.length;
+  const limit = Math.min(maxDeg, n - 2); // need at least 1 residual degree of freedom
+  if (limit < 1) return 1;
+
+  let bestDeg = 1;
+  let bestAdjR2 = -Infinity;
+
+  for (let d = 1; d <= limit; d++) {
+    try {
+      const res = fitPolynomial(x, y, d);
+      const p = d + 1; // number of fitted coefficients
+      // Adjusted R² = 1 - (SSres / (n-p)) / (SStot / (n-1))
+      const adjR2 = 1 - (1 - res.r2) * (n - 1) / (n - p);
+      if (adjR2 > bestAdjR2) {
+        bestAdjR2 = adjR2;
+        bestDeg = d;
+      }
+    } catch {
+      break;
+    }
+  }
+  return bestDeg;
+}
+
+/**
  * Format coefficients into a human-readable polynomial string.
  * e.g.  3.00x² - 1.50x + 0.50
  */

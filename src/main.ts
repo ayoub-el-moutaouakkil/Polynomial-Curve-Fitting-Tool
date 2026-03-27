@@ -1,4 +1,4 @@
-import { parseMultiCSV, fitPolynomial } from "./polynomial";
+import { parseMultiCSV, fitPolynomial, findOptimalDegree } from "./polynomial";
 
 // ── Types & constants ─────────────────────────────────────────────────────────
 interface FitSeries {
@@ -8,6 +8,7 @@ interface FitSeries {
   coefficients: number[];
   r2: number;
   equation: string;
+  optimalDegree: number;
   visible: boolean;
   color: string;
 }
@@ -21,6 +22,8 @@ const COLORS = [
 ];
 
 let allSeries: FitSeries[] = [];
+// Cache optimal degree per series so it isn't recomputed on every slider move
+const optDegCache = new Map<string, number>();
 
 // ── Chart helpers ─────────────────────────────────────────────────────────────
 function evalPoly(coeffs: number[], x: number): number {
@@ -128,9 +131,8 @@ function drawChart(series: FitSeries[]): void {
   const allXArr = visible.flatMap((s) => s.x);
   const xMin = Math.min(...allXArr);
   const xMax = Math.max(...allXArr);
-  const xSpan = xMax - xMin || 1;
-  const xLo = xMin - xSpan * 0.05;
-  const xHi = xMax + xSpan * 0.05;
+  const xLo = xMin;
+  const xHi = xMax === xMin ? xMin + 1 : xMax;
 
   // Combined y range (data + all curves)
   const STEPS = 300;
@@ -204,20 +206,19 @@ function drawChart(series: FitSeries[]): void {
 }
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
-const dropZone    = document.getElementById("drop-zone")    as HTMLDivElement;
-const fileInput   = document.getElementById("file-input")   as HTMLInputElement;
-const fileNameEl  = document.getElementById("file-name")    as HTMLParagraphElement;
-const degreeInput = document.getElementById("degree")       as HTMLInputElement;
-const degreeValue = document.getElementById("degree-value") as HTMLSpanElement;
-const seriesCard  = document.getElementById("series-card")  as HTMLDivElement;
-const seriesTbody = document.getElementById("series-tbody") as HTMLTableSectionElement;
-const coeffCard   = document.getElementById("coeff-card")   as HTMLDivElement;
-const coeffContent= document.getElementById("coeff-content")as HTMLDivElement;
-const errorEl     = document.getElementById("error")        as HTMLParagraphElement;
-const statusBadge  = document.getElementById("status-badge")   as HTMLDivElement;
-const helpBtn      = document.getElementById("help-btn")        as HTMLButtonElement;
-const guideOverlay = document.getElementById("guide-overlay")   as HTMLDivElement;
-const guideClose   = document.getElementById("guide-close")     as HTMLButtonElement;
+const dropZone      = document.getElementById("drop-zone")      as HTMLDivElement;
+const fileInput     = document.getElementById("file-input")     as HTMLInputElement;
+const fileNameEl    = document.getElementById("file-name")      as HTMLParagraphElement;
+const seriesCard    = document.getElementById("series-card")    as HTMLDivElement;
+const seriesTbody   = document.getElementById("series-tbody")   as HTMLTableSectionElement;
+const coeffCard     = document.getElementById("coeff-card")     as HTMLDivElement;
+const coeffContent  = document.getElementById("coeff-content")  as HTMLDivElement;
+const errorEl       = document.getElementById("error")          as HTMLParagraphElement;
+const statusBadge   = document.getElementById("status-badge")   as HTMLDivElement;
+const helpBtn       = document.getElementById("help-btn")       as HTMLButtonElement;
+const guideOverlay  = document.getElementById("guide-overlay")  as HTMLDivElement;
+const guideClose    = document.getElementById("guide-close")    as HTMLButtonElement;
+const curveControls = document.getElementById("curve-controls") as HTMLDivElement;
 
 let currentCSV: string | null = null;
 
@@ -241,12 +242,6 @@ window.addEventListener("resize", () => {
     if (allSeries.length) drawChart(allSeries);
     else drawEmptyChart();
   }, 80);
-});
-
-// ── Degree slider ─────────────────────────────────────────────────────────────
-degreeInput.addEventListener("input", () => {
-  degreeValue.textContent = degreeInput.value;
-  if (currentCSV) runFit(currentCSV);
 });
 
 // ── File input ────────────────────────────────────────────────────────────────
@@ -276,6 +271,7 @@ function readFile(file: File): void {
     currentCSV = e.target?.result as string;
     fileNameEl.textContent = `📄 ${file.name}`;
     fileNameEl.classList.remove("hidden");
+    optDegCache.clear();
     runFit(currentCSV);
   };
   reader.readAsText(file);
@@ -285,13 +281,14 @@ function runFit(csv: string): void {
   clearError();
   try {
     const parsed = parseMultiCSV(csv);
-    const degree = parseInt(degreeInput.value, 10);
-
-    // Preserve visibility when re-fitting (e.g. degree change)
     const prevVis = new Map(allSeries.map((s) => [s.name, s.visible]));
 
     allSeries = parsed.map((s, i) => {
-      const result = fitPolynomial(s.x, s.y, degree);
+      if (!optDegCache.has(s.name)) {
+        optDegCache.set(s.name, findOptimalDegree(s.x, s.y));
+      }
+      const optDeg = optDegCache.get(s.name)!;
+      const result = fitPolynomial(s.x, s.y, optDeg);
       return {
         name: s.name,
         x: s.x,
@@ -299,21 +296,24 @@ function runFit(csv: string): void {
         coefficients: result.coefficients,
         r2: result.r2,
         equation: result.equation,
+        optimalDegree: result.coefficients.reduce((m, c, i) => Math.abs(c) >= 1e-10 ? i : m, 0),
         visible: prevVis.get(s.name) ?? true,
         color: COLORS[i % COLORS.length],
       };
     });
 
+    renderCurveButtons();
     renderSeriesTable();
     renderCoeffTables();
     seriesCard.classList.remove("hidden");
     coeffCard.classList.remove("hidden");
-    setStatus(`${allSeries.length} series · Degree ${degree}`, "status-ready");
+    setStatus(`${allSeries.length} series`, "status-ready");
     drawChart(allSeries);
   } catch (err) {
     showError((err as Error).message);
     seriesCard.classList.add("hidden");
     coeffCard.classList.add("hidden");
+    curveControls.classList.add("hidden");
     allSeries = [];
     setStatus("Error", "status-error");
     drawEmptyChart();
@@ -322,32 +322,39 @@ function runFit(csv: string): void {
 
 function toggleSeries(idx: number): void {
   allSeries[idx].visible = !allSeries[idx].visible;
+  renderCurveButtons();
   renderSeriesTable();
   drawChart(allSeries);
 }
 
+function renderCurveButtons(): void {
+  curveControls.innerHTML = "";
+  if (!allSeries.length) { curveControls.classList.add("hidden"); return; }
+  curveControls.classList.remove("hidden");
+  allSeries.forEach((s, i) => {
+    const btn = document.createElement("button");
+    btn.className = `curve-toggle-btn${s.visible ? " active" : ""}`;
+    btn.style.setProperty("--series-color", s.color);
+    btn.textContent = s.name;
+    btn.title = `Degree ${s.optimalDegree} · R²=${s.r2.toFixed(4)}`;
+    btn.addEventListener("click", () => toggleSeries(i));
+    curveControls.appendChild(btn);
+  });
+}
+
 function renderSeriesTable(): void {
   seriesTbody.innerHTML = "";
-  allSeries.forEach((s, i) => {
+  allSeries.forEach((s) => {
     const r2Class = s.r2 >= 0.99 ? "r2-good" : s.r2 >= 0.90 ? "r2-ok" : "r2-poor";
     const tr = document.createElement("tr");
     tr.className = `series-row${s.visible ? "" : " series-off"}`;
-    tr.title = s.visible ? "Click to hide" : "Click to show";
     tr.innerHTML = `
       <td><span class="series-dot" style="background:${s.color}"></span></td>
       <td class="series-name">${s.name}</td>
       <td class="series-eq">${s.equation}</td>
       <td class="series-r2 ${r2Class}">${s.r2.toFixed(4)}</td>
       <td class="series-n">${s.x.length}</td>
-      <td>
-        <button class="eye-btn" title="${s.visible ? "Hide" : "Show"}">
-          ${s.visible
-            ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`
-            : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`
-          }
-        </button>
-      </td>`;
-    tr.addEventListener("click", () => toggleSeries(i));
+      <td><span class="opt-deg-badge" title="Optimal degree (adjusted R²)">${s.optimalDegree}</span></td>`;
     seriesTbody.appendChild(tr);
   });
 }

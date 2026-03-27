@@ -48,16 +48,6 @@
             </p>
           </section>
 
-          <section class="sidebar-section">
-            <h3 class="sidebar-label">Polynomial Degree</h3>
-            <div class="degree-display">
-              <span id="degree-value">2</span>
-            </div>
-            <input type="range" id="degree" min="1" max="10" value="2" />
-            <div class="degree-ticks">
-              <span>1</span><span>5</span><span>10</span>
-            </div>
-          </section>
         </div>
 
         <div class="sidebar-footer">
@@ -85,6 +75,9 @@
           </div>
         </header>
 
+        <!-- Curve toggle buttons — shown after CSV loads -->
+        <div id="curve-controls" class="curve-controls hidden"></div>
+
         <!-- Chart — always visible -->
         <div class="chart-card">
           <div class="chart-card-header">
@@ -105,7 +98,7 @@
                   <th>Equation</th>
                   <th>R²</th>
                   <th>N pts</th>
-                  <th></th>
+                  <th>Opt. deg</th>
                 </tr>
               </thead>
               <tbody id="series-tbody"></tbody>
