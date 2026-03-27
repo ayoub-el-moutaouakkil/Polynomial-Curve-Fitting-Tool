@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CurveFit</title>
+    <link rel="icon" type="image/png" href="/polynomial-curve-fitting-tool/favicon.png" />
+    <link rel="apple-touch-icon" type="image/png" href="/polynomial-curve-fitting-tool/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Code+Pro:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <script type="module" crossorigin src="/polynomial-curve-fitting-tool/assets/index-CZLlSjWG.js"></script>
+    <link rel="stylesheet" crossorigin href="/polynomial-curve-fitting-tool/assets/index-ud7A4m5y.css">
+  </head>
+  <body>
+    <div class="app">
+
+      <!-- ── Sidebar ──────────────────────────────────────────────────────── -->
+      <aside class="sidebar">
+        <div class="sidebar-brand">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          CurveFit
+        </div>
+
+        <div class="sidebar-nav">
+          <section class="sidebar-section">
+            <h3 class="sidebar-label">Data Source</h3>
+            <div id="drop-zone">
+              <div class="drop-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+              </div>
+              <p><span>Click to browse</span> or drag &amp; drop</p>
+              <p class="drop-sub">.csv file</p>
+            </div>
+            <input type="file" id="file-input" accept=".csv,text/csv" hidden />
+            <p id="file-name" class="file-name hidden"></p>
+            <p class="hint">
+              Two columns: <code>x</code> and <code>y</code>.<br/>
+              Separate series with a <strong>blank line</strong>.<br/>
+              Add a name above each section.
+            </p>
+          </section>
+
+        </div>
+
+        <div class="sidebar-footer">
+          Least-squares regression
+        </div>
+      </aside>
+
+      <!-- ── Workspace ────────────────────────────────────────────────────── -->
+      <main class="workspace">
+
+        <header class="workspace-header">
+          <div>
+            <h1>Polynomial Curve Fitting</h1>
+            <p>Least-squares regression from tabular data</p>
+          </div>
+          <div class="header-actions">
+            <div id="status-badge" class="status-badge status-idle">Awaiting data</div>
+            <button id="help-btn" class="help-btn" title="User guide">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <!-- Curve toggle buttons — shown after CSV loads -->
+        <div id="curve-controls" class="curve-controls hidden"></div>
+
+        <!-- Chart — always visible -->
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <span class="chart-card-title">Curve Visualization</span>
+          </div>
+          <canvas id="chart"></canvas>
+        </div>
+
+        <!-- Series table — shown after CSV loads -->
+        <div class="data-card hidden" id="series-card">
+          <h2 class="card-title">Series</h2>
+          <div class="table-wrap">
+            <table class="series-table">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Name</th>
+                  <th>Equation</th>
+                  <th>R²</th>
+                  <th>N pts</th>
+                  <th>Opt. deg</th>
+                </tr>
+              </thead>
+              <tbody id="series-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Error -->
+        <p id="error" class="error-msg hidden"></p>
+
+        <!-- Coefficient tables — one per series -->
+        <div class="data-card hidden" id="coeff-card">
+          <h2 class="card-title">Coefficients</h2>
+          <div id="coeff-content"></div>
+        </div>
+
+      </main>
+    </div>
+
+    <!-- ── User Guide Modal ─────────────────────────────────────────────── -->
+    <div id="guide-overlay" class="guide-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="guide-title">
+      <div class="guide-modal">
+        <div class="guide-header">
+          <h2 id="guide-title">User Guide</h2>
+          <button id="guide-close" class="guide-close" aria-label="Close guide">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="guide-body">
+
+          <section class="guide-section">
+            <h3>Quick Start</h3>
+            <ol>
+              <li>Prepare a <strong>CSV file</strong> with two columns: <code>x</code> and <code>y</code>.</li>
+              <li><strong>Upload</strong> it via the sidebar — drag &amp; drop or click to browse.</li>
+              <li>Adjust the <strong>polynomial degree</strong> slider to control the curve complexity.</li>
+              <li>Read the fitted <strong>equation</strong> and <strong>R²</strong> in the Series table.</li>
+            </ol>
+          </section>
+
+          <section class="guide-section">
+            <h3>CSV Format — Single Series</h3>
+            <p>Two columns per row, comma or semicolon delimited. A header row is optional and detected automatically.</p>
+            <pre><code>x,y
+-3,8.7
+-2,3.9
+-1,0.8
+0,0.1
+1,1.2</code></pre>
+          </section>
+
+          <section class="guide-section">
+            <h3>CSV Format — Multiple Series</h3>
+            <p>Separate each series with a <strong>blank line</strong>. Optionally add a name on the line just above the data.</p>
+            <pre><code>Measurement A
+x,y
+0,1.2
+1,3.5
+2,6.8
+
+Measurement B
+x,y
+0,0.4
+1,1.9
+2,4.1</code></pre>
+            <p>Up to <strong>20 series</strong> can be loaded at once.</p>
+          </section>
+
+          <section class="guide-section">
+            <h3>Polynomial Degree</h3>
+            <p>The slider sets the degree <em>d</em> of the fitted polynomial:</p>
+            <ul>
+              <li><strong>1</strong> — straight line (linear)</li>
+              <li><strong>2</strong> — parabola (quadratic)</li>
+              <li><strong>3</strong> — cubic curve</li>
+              <li><strong>d</strong> — requires at least <em>d + 1</em> data points</li>
+            </ul>
+            <p>Higher degrees fit the data more closely but may overfit noise. Start low and increase until R² stops improving significantly.</p>
+          </section>
+
+          <section class="guide-section">
+            <h3>Understanding R²</h3>
+            <p>R² (coefficient of determination) measures how well the curve fits the data:</p>
+            <ul>
+              <li><span class="r2-good">R² ≥ 0.99</span> — excellent fit</li>
+              <li><span class="r2-ok">R² ≥ 0.90</span> — good fit</li>
+              <li><span class="r2-poor">R² &lt; 0.90</span> — poor fit — try a higher degree</li>
+            </ul>
+          </section>
+
+          <section class="guide-section">
+            <h3>Series Panel</h3>
+            <p>Each row in the <strong>Series</strong> table represents one curve. <strong>Click any row</strong> to toggle its visibility on the chart. The eye icon on the right also acts as a toggle.</p>
+            <p>The in-chart legend shows up to 6 series; if more are visible it displays <em>+N more…</em></p>
+          </section>
+
+          <section class="guide-section">
+            <h3>Coefficients Table</h3>
+            <p>The Coefficients section shows the exact polynomial coefficients for each series:</p>
+            <pre><code>y = a₀ + a₁x + a₂x² + … + aₙxⁿ</code></pre>
+            <p>Coefficients are displayed with 8 significant figures.</p>
+          </section>
+
+        </div>
+      </div>
+    </div>
+
+  </body>
+</html>
