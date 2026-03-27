@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  base: "/polynomial-curve-fitting-tool/",
+  base: "/Polynomial-Curve-Fitting-Tool/",
   test: {
     environment: "node",
   },
