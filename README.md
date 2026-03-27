@@ -184,6 +184,4 @@ Where `n` is the number of data points and `p` is the number of coefficients.
 
 ---
 
-## License
-
-MIT
+© 2026 Ayoub El Moutaouakkil. All rights reserved.
