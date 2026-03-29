@@ -54,6 +54,7 @@ export function parseMultiCSV(csv: string): ParsedSeries[] {
   }
 
   if (!results.length) throw new Error("No valid data found in the CSV.");
+  if (results.length > 20) throw new Error("Too many series. Please limit your CSV to 20 series.");
   return results;
 }
 

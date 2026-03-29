@@ -343,9 +343,15 @@ dropZone.addEventListener("drop", (e) => {
 });
 
 // ── Core logic ────────────────────────────────────────────────────────────────
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+
 function readFile(file: File): void {
   if (!file.name.endsWith(".csv") && file.type !== "text/csv") {
     showError("Please upload a .csv file.");
+    return;
+  }
+  if (file.size > MAX_FILE_SIZE) {
+    showError("File is too large. Please upload a CSV file under 5 MB.");
     return;
   }
   const reader = new FileReader();
