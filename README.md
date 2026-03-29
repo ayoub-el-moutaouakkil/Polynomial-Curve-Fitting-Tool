@@ -197,3 +197,5 @@ Where `n` is the number of data points and `p` is the number of coefficients.
 ---
 
 © 2026 Ayoub El Moutaouakkil. All rights reserved.
+
+Built by **Ayoub El Moutaouakkil** — [elmoutaouakkilayoub00@gmail.com](mailto:elmoutaouakkilayoub00@gmail.com)
