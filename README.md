@@ -196,6 +196,6 @@ Where `n` is the number of data points and `p` is the number of coefficients.
 
 ---
 
-© 2026 Ayoub El Moutaouakkil. All rights reserved.
+© 2026 Ayoub El Moutaouakkil — Released under the [MIT License](LICENSE).
 
-Built by **Ayoub El Moutaouakkil** — [elmoutaouakkilayoub00@gmail.com](mailto:elmoutaouakkilayoub00@gmail.com)
+Built by **Ayoub El Moutaouakkil** — [elmoutaouakkilayoub00@gmail.com](mailto:elmoutaouakkilayoub00@gmail.com) · [github.com/ayoub-el-moutaouakkil](https://github.com/ayoub-el-moutaouakkil)
