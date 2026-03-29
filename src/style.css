@@ -438,6 +438,142 @@ tbody td {
 .help-btn:hover { color: var(--accent); border-color: var(--accent-2); background: #eff6ff; }
 .help-btn svg { width: 16px; height: 16px; }
 
+/* ── PDF export button ──────────────────────────────────────────────────────── */
+.pdf-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-family: var(--font);
+  font-weight: 500;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.pdf-btn:hover { color: var(--accent); border-color: var(--accent-2); background: #eff6ff; }
+.pdf-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+.pdf-btn.hidden { display: none; }
+
+/* ── Print / PDF view ───────────────────────────────────────────────────────── */
+#print-view { display: none; }
+
+@media print {
+  .app,
+  .guide-overlay { display: none !important; }
+
+  #print-view {
+    display: block !important;
+    font-family: 'Inter', system-ui, sans-serif;
+    color: #0f172a;
+    font-size: 11pt;
+    padding: 0;
+    margin: 0;
+  }
+
+  .print-doc-header {
+    border-bottom: 2px solid #1d4ed8;
+    padding-bottom: 0.6cm;
+    margin-bottom: 0.7cm;
+  }
+  .print-doc-header h1 {
+    font-size: 16pt;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 0.15cm;
+  }
+  .print-doc-header p {
+    font-size: 9pt;
+    color: #64748b;
+    font-family: 'Source Code Pro', 'Courier New', monospace;
+  }
+
+  .print-series {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin-bottom: 0.9cm;
+    padding: 0.5cm 0.6cm;
+    border: 1pt solid #dde3ec;
+    border-left: 4pt solid var(--series-color, #3b82f6);
+    border-radius: 4pt;
+    background: #fafbfc;
+  }
+
+  .print-series-name {
+    font-size: 13pt;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 0.25cm;
+  }
+
+  .print-equation {
+    font-family: 'Source Code Pro', 'Courier New', monospace;
+    font-size: 12pt;
+    font-weight: 600;
+    color: #1d4ed8;
+    margin-bottom: 0.35cm;
+    word-break: break-all;
+  }
+
+  .print-meta {
+    display: flex;
+    gap: 1.5cm;
+    margin-bottom: 0.35cm;
+    font-size: 9pt;
+    color: #475569;
+    font-family: 'Source Code Pro', 'Courier New', monospace;
+  }
+  .print-meta span strong { color: #0f172a; }
+
+  .print-chart-img {
+    display: block;
+    width: 100%;
+    border-radius: 4pt;
+    border: 0.5pt solid #dde3ec;
+    margin-bottom: 0.35cm;
+  }
+
+  .print-coeff-title {
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #94a3b8;
+    font-family: 'Source Code Pro', 'Courier New', monospace;
+    font-weight: 600;
+    margin-bottom: 0.2cm;
+    margin-top: 0.35cm;
+  }
+
+  .print-coeff-table {
+    width: auto;
+    border-collapse: collapse;
+    font-family: 'Source Code Pro', 'Courier New', monospace;
+    font-size: 9pt;
+  }
+  .print-coeff-table th {
+    text-align: left;
+    padding: 0.1cm 0.3cm;
+    background: #f1f5f9;
+    color: #64748b;
+    border: 0.5pt solid #dde3ec;
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .print-coeff-table td {
+    padding: 0.1cm 0.3cm;
+    border: 0.5pt solid #e2e8f0;
+    color: #0f172a;
+    vertical-align: middle;
+  }
+  .print-coeff-table tr:nth-child(even) td { background: #f8fafc; }
+}
+
 /* ── Guide modal ────────────────────────────────────────────────────────────── */
 .guide-overlay {
   position: fixed;

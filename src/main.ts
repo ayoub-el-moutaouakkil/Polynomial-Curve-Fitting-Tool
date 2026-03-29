@@ -219,8 +219,90 @@ const helpBtn       = document.getElementById("help-btn")       as HTMLButtonEle
 const guideOverlay  = document.getElementById("guide-overlay")  as HTMLDivElement;
 const guideClose    = document.getElementById("guide-close")    as HTMLButtonElement;
 const curveControls = document.getElementById("curve-controls") as HTMLDivElement;
+const pdfBtn        = document.getElementById("pdf-btn")        as HTMLButtonElement;
+const printView     = document.getElementById("print-view")     as HTMLDivElement;
 
 let currentCSV: string | null = null;
+
+// ── PDF export helpers ────────────────────────────────────────────────────────
+function renderSeriesToDataURL(s: FitSeries): string {
+  const W = 600, H = 280;
+  const dpr = window.devicePixelRatio || 1;
+  const canvas = document.createElement("canvas");
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  const ctx = canvas.getContext("2d")!;
+  ctx.scale(dpr, dpr);
+
+  const xLo = Math.min(...s.x);
+  const xHi = Math.max(...s.x) === xLo ? xLo + 1 : Math.max(...s.x);
+
+  const STEPS = 300;
+  const allY: number[] = [...s.y];
+  for (let i = 0; i <= STEPS; i++) allY.push(evalPoly(s.coefficients, xLo + (i / STEPS) * (xHi - xLo)));
+  const yMin = Math.min(...allY);
+  const yMax = Math.max(...allY);
+  const ySpan = yMax - yMin || 1;
+  const yLo = yMin - ySpan * 0.08;
+  const yHi = yMax + ySpan * 0.08;
+
+  const toX = (x: number) => PAD.left + ((x - xLo) / (xHi - xLo)) * (W - PAD.left - PAD.right);
+  const toY = (y: number) => PAD.top + ((yHi - y) / (yHi - yLo)) * (H - PAD.top - PAD.bottom);
+
+  ctx.fillStyle = "#f8fafc"; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "#f1f5f9"; ctx.fillRect(PAD.left, PAD.top, W - PAD.left - PAD.right, H - PAD.top - PAD.bottom);
+  drawGrid(ctx, W, H, xLo, xHi, yLo, yHi, toX, toY);
+
+  ctx.strokeStyle = s.color; ctx.lineWidth = 2; ctx.lineJoin = "round";
+  ctx.beginPath();
+  for (let i = 0; i <= STEPS; i++) {
+    const cx = toX(xLo + (i / STEPS) * (xHi - xLo));
+    const cy = toY(evalPoly(s.coefficients, xLo + (i / STEPS) * (xHi - xLo)));
+    i === 0 ? ctx.moveTo(cx, cy) : ctx.lineTo(cx, cy);
+  }
+  ctx.stroke();
+
+  for (let i = 0; i < s.x.length; i++) {
+    ctx.beginPath();
+    ctx.arc(toX(s.x[i]), toY(s.y[i]), 4.5, 0, Math.PI * 2);
+    ctx.fillStyle = s.color; ctx.fill();
+    ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1.5; ctx.stroke();
+  }
+
+  return canvas.toDataURL("image/png");
+}
+
+// ── PDF export ────────────────────────────────────────────────────────────────
+pdfBtn.addEventListener("click", () => {
+  printView.innerHTML = `
+    <div class="print-doc-header">
+      <h1>Polynomial Curve Fitting Report</h1>
+      <p>Generated ${new Date().toLocaleString()} &nbsp;·&nbsp; ${allSeries.length} series</p>
+    </div>
+    ${allSeries.map((s) => {
+      const r2Color = s.r2 >= 0.99 ? "#16a34a" : s.r2 >= 0.90 ? "#b45309" : "#dc2626";
+      const coeffRows = s.coefficients.map((c, i) =>
+        `<tr><td>a<sub>${i}</sub></td><td>x<sup>${i}</sup></td><td>${c.toPrecision(8)}</td></tr>`
+      ).join("");
+      return `
+        <div class="print-series" style="--series-color:${s.color}">
+          <div class="print-series-name">${s.name}</div>
+          <div class="print-equation">${s.equation}</div>
+          <div class="print-meta">
+            <span>R² <strong style="color:${r2Color}">${s.r2.toFixed(6)}</strong></span>
+            <span>Degree <strong>${s.optimalDegree}</strong></span>
+            <span>Points <strong>${s.x.length}</strong></span>
+          </div>
+          <img src="${renderSeriesToDataURL(s)}" class="print-chart-img" />
+          <div class="print-coeff-title">Coefficients</div>
+          <table class="print-coeff-table">
+            <thead><tr><th>Coeff.</th><th>Term</th><th>Value</th></tr></thead>
+            <tbody>${coeffRows}</tbody>
+          </table>
+        </div>`;
+    }).join("")}`;
+  window.print();
+});
 
 // ── Guide modal ───────────────────────────────────────────────────────────────
 helpBtn.addEventListener("click", () => guideOverlay.classList.remove("hidden"));
@@ -308,12 +390,14 @@ function runFit(csv: string): void {
     seriesCard.classList.remove("hidden");
     coeffCard.classList.remove("hidden");
     setStatus(`${allSeries.length} series`, "status-ready");
+    pdfBtn.classList.remove("hidden");
     drawChart(allSeries);
   } catch (err) {
     showError((err as Error).message);
     seriesCard.classList.add("hidden");
     coeffCard.classList.add("hidden");
     curveControls.classList.add("hidden");
+    pdfBtn.classList.add("hidden");
     allSeries = [];
     setStatus("Error", "status-error");
     drawEmptyChart();

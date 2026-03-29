@@ -11,6 +11,7 @@
 - **Interactive curve toggle** — show/hide individual curves with one click
 - **Live R² feedback** — colour-coded fit quality (green / orange / red)
 - **Coefficient table** — exact polynomial coefficients with 8 significant figures
+- **PDF export** — generate a report with each curve's chart, equation, R², and coefficients on a separate page
 - **No backend** — fully client-side, your data never leaves your browser
 
 ---
@@ -60,7 +61,18 @@ Once loaded, the app displays:
 
 Click any **curve button** above the chart to show or hide individual series.
 
-### 5. Understanding R²
+### 5. Export as PDF
+
+Click the **Export PDF** button in the top-right corner to generate a report. The browser's print dialog will open — choose **Save as PDF**.
+
+Each curve gets its own section in the report, containing:
+
+- The fitted curve chart (data points + polynomial curve)
+- The polynomial equation
+- R², polynomial degree, and number of data points
+- Full coefficients table (8 significant figures)
+
+### 6. Understanding R²
 
 | Value | Colour | Meaning |
 |-------|--------|---------|
