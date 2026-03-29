@@ -286,8 +286,8 @@ pdfBtn.addEventListener("click", () => {
       ).join("");
       return `
         <div class="print-series" style="--series-color:${s.color}">
-          <div class="print-series-name">${s.name}</div>
-          <div class="print-equation">${s.equation}</div>
+          <div class="print-series-name">${escapeHTML(s.name)}</div>
+          <div class="print-equation">${escapeHTML(s.equation)}</div>
           <div class="print-meta">
             <span>R² <strong style="color:${r2Color}">${s.r2.toFixed(6)}</strong></span>
             <span>Degree <strong>${s.optimalDegree}</strong></span>
@@ -434,8 +434,8 @@ function renderSeriesTable(): void {
     tr.className = `series-row${s.visible ? "" : " series-off"}`;
     tr.innerHTML = `
       <td><span class="series-dot" style="background:${s.color}"></span></td>
-      <td class="series-name">${s.name}</td>
-      <td class="series-eq">${s.equation}</td>
+      <td class="series-name">${escapeHTML(s.name)}</td>
+      <td class="series-eq">${escapeHTML(s.equation)}</td>
       <td class="series-r2 ${r2Class}">${s.r2.toFixed(4)}</td>
       <td class="series-n">${s.x.length}</td>
       <td><span class="opt-deg-badge" title="Optimal degree (adjusted R²)">${s.optimalDegree}</span></td>`;
@@ -454,7 +454,7 @@ function renderCoeffTables(): void {
     group.innerHTML = `
       <div class="coeff-group-header">
         <span class="series-dot" style="background:${s.color}"></span>
-        ${s.name}
+        ${escapeHTML(s.name)}
       </div>
       <table>
         <thead><tr><th>Coeff.</th><th>Term</th><th>Value</th></tr></thead>
@@ -462,6 +462,15 @@ function renderCoeffTables(): void {
       </table>`;
     coeffContent.appendChild(group);
   }
+}
+
+function escapeHTML(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 function setStatus(text: string, cls: string): void {
